@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="theme-color" content="#FFD60A">
+    <title>Remis Cervantino - El servicio más rápido y seguro</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 130'%3E%3Crect width='200' height='130' rx='20' fill='%23FFD60A'/%3E%3Cpath d='M48 24Q100 14 152 24L170 52H30Z' fill='%23111'/%3E%3Cpath d='M58 29Q100 22 142 29L154 50H46Z' fill='%23FFD60A'/%3E%3Cpath d='M20 62Q22 52 36 50L48 52H152L164 50Q178 52 180 62V100Q180 108 172 108H28Q20 108 20 100Z' fill='%23111'/%3E%3Crect x='14' y='52' width='16' height='11' rx='3' fill='%23111'/%3E%3Crect x='170' y='52' width='16' height='11' rx='3' fill='%23111'/%3E%3Crect x='28' y='104' width='26' height='20' rx='6' fill='%23111'/%3E%3Crect x='146' y='104' width='26' height='20' rx='6' fill='%23111'/%3E%3C/svg%3E">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800;900&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --amarillo: #FFD60A;
+            --amarillo-oscuro: #F2C400;
+            --amarillo-claro: #FFE766;
+            --negro: #111111;
+            --negro-card: #1a1a1a;
+            --negro-borde: #2c2c2c;
+            --blanco: #ffffff;
+            --texto-suave: rgba(17, 17, 17, 0.72);
+            --texto-tenue: rgba(17, 17, 17, 0.55);
+            --sombra: rgba(17, 17, 17, 0.28);
+            --rojo: #c0392b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--amarillo);
+            color: var(--negro);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .app-card {
+            max-width: 100%;
+            width: 100%;
+            background: var(--amarillo);
+            padding: 0 20px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== BLOQUEO ===== */
+        .bloqueo-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 214, 10, 0.94);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+        .bloqueo-overlay.active { display: flex; animation: fadeInBloqueo 0.5s ease; }
+        @keyframes fadeInBloqueo { from { opacity:0; } to { opacity:1; } }
+
+        .bloqueo-card {
+            background: var(--negro);
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            color: var(--blanco);
+            box-shadow: 0 16px 40px var(--sombra);
+        }
+        .bloqueo-card > i { font-size: 56px; color: var(--amarillo); margin-bottom: 16px; }
+        .bloqueo-card h2 { font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 800; margin-bottom: 10px; }
+        .bloqueo-card p { font-size: 15px; opacity: 0.8; line-height: 1.6; margin-bottom: 6px; }
+        .bloqueo-card .horario-bloqueo {
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: rgba(255,214,10,0.1);
+            border-radius: 12px;
+            font-size: 13px;
+            border: 1px solid rgba(255,214,10,0.35);
+            color: var(--amarillo);
+        }
+        .bloqueo-card .horario-bloqueo i { font-size: 14px; margin-right: 6px; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 28px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--negro);
+            color: var(--blanco);
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.4s ease;
+            max-width: 90%;
+            text-align: center;
+        }
+        .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.success { border-left: 4px solid var(--amarillo); }
+        .toast.error { border-left: 4px solid #e74c3c; }
+        .toast i { margin-right: 8px; }
+
+        /* ===== HEADER ===== */
+        .top-spacer { height: 24px; }
+
+        .header-remis {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--negro);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .logo-icono {
+            width: 84px;
+            height: auto;
+            flex-shrink: 0;
+            padding-right: 14px;
+            border-right: 2px solid var(--negro);
+            box-sizing: content-box;
+        }
+        .car-body { fill: var(--negro); }
+        .car-cut { fill: var(--amarillo); }
+
+        .logo-texto { display: flex; flex-direction: column; min-width: 0; }
+
+        .logo-titulo {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            line-height: 1;
+            text-transform: uppercase;
+        }
+        .logo-titulo .remis-word { display: block; font-size: 17px; letter-spacing: 0.06em; font-weight: 800; }
+        .logo-titulo .nombre-word { display: block; font-size: 30px; letter-spacing: -0.01em; line-height: 0.95; }
+        .logo-slogan {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 6px;
+            padding-top: 5px;
+            border-top: 2px solid var(--negro);
+        }
+
+        .horario-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--negro);
+            color: var(--amarillo);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* ===== TÍTULOS ===== */
+        .subhead {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--negro);
+            margin-bottom: 20px;
+            padding: 10px 14px;
+            background: rgba(17,17,17,0.08);
+            border-left: 4px solid var(--negro);
+            border-radius: 0 8px 8px 0;
+        }
+        .subhead i { margin-right: 6px; }
+
+        /* ===== FORMULARIO ===== */
+        .form-group { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--negro);
+            margin-bottom: 7px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        label i { margin-right: 6px; width: 16px; text-align: center; }
+        label .requerido { color: var(--texto-suave); font-size: 11px; font-weight: 500; margin-left: 4px; text-transform: none; }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--amarillo-claro);
+            border-radius: 12px;
+            padding: 4px 14px;
+            border: 2px solid var(--negro);
+            transition: box-shadow 0.2s, background 0.2s;
+        }
+        .input-wrapper:focus-within {
+            background: #fff3a8;
+            box-shadow: 0 0 0 3px rgba(17,17,17,0.25);
+        }
+        .input-wrapper.error {
+            border-color: var(--rojo);
+            box-shadow: 0 0 0 3px rgba(192,57,43,0.2);
+        }
+        .input-wrapper i { color: var(--negro); font-size: 15px; margin-right: 10px; flex-shrink: 0; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 14px 0;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--negro);
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(17,17,17,0.45);
+            font-weight: 400;
+        }
+        textarea { resize: vertical; min-height: 56px; padding: 10px 0; }
+        select {
+            appearance: none; -webkit-appearance: none; cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23111111' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0 center;
+        }
+        select option { background: #fff; color: #111; }
+
+        .input-error {
+            display: none;
+            color: var(--rojo);
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 5px;
+            margin-left: 2px;
+        }
+        .input-error i { margin-right: 4px; }
+
+        .ubication-hint {
+            font-size: 11px;
+            color: var(--texto-suave);
+            margin-top: 4px;
+            margin-left: 2px;
+        }
+        .ubication-hint i { margin-right: 4px; }
+
+        /* ===== PRECIO BOX ===== */
+        .precio-box {
+            background: var(--negro);
+            border-radius: 16px;
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 18px 0 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .precio-label {
+            font-size: 13px;
+            color: rgba(255,255,255,0.75);
+            font-weight: 500;
+        }
+        .precio-label i { color: var(--amarillo); margin-right: 6px; }
+        .precio-monto {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 26px;
+            color: var(--amarillo);
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+        .precio-monto span { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); font-family: 'Inter', sans-serif; }
+        .precio-detalle {
+            width: 100%;
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            text-align: right;
+            margin-top: -4px;
+        }
+
+        .loading-precio { display: inline-block; font-size: 10px; color: var(--amarillo); margin-left: 6px; }
+        .loading-precio i { animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ===== BOTONES ===== */
+        .btn-principal {
+            width: 100%;
+            background: var(--negro);
+            border: none;
+            border-radius: 50px;
+            padding: 17px 10px;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--amarillo);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 8px 24px var(--sombra);
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 4px;
+            letter-spacing: 0.02em;
+        }
+        .btn-principal i { font-size: 22px; }
+        .btn-principal:active { transform: scale(0.97); box-shadow: 0 4px 12px var(--sombra); }
+        .btn-principal:hover { background: #000; }
+        .btn-principal:disabled { opacity: 0.3; pointer-events: none; transform: none; box-shadow: none; }
+
+        .btn-principal .spinner-btn { display:none; width:22px; height:22px; border:3px solid rgba(255,214,10,0.3); border-top-color: var(--amarillo); border-radius:50%; animation: spin 0.8s linear infinite; }
+        .btn-principal.cargando .spinner-btn { display: inline-block; }
+        .btn-principal.cargando i { display: none; }
+        .btn-principal.cargando .texto-btn { display: none; }
+
+        .btn-leyenda {
+            text-align: center;
+            font-size: 11px;
+            color: var(--texto-suave);
+            margin-top: 5px;
+        }
+        .btn-leyenda i { margin-right: 4px; }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 16px 0 14px;
+            color: var(--texto-suave);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1;
+            border-bottom: 1.5px solid rgba(17,17,17,0.35);
+        }
+        .divider::before { margin-right: 12px; }
+        .divider::after { margin-left: 12px; }
+
+        /* ===== BTN SECUNDARIOS ===== */
+        .btn-calculadora, .btn-consulta {
+            width: 100%;
+            background: transparent;
+            border: 2px solid var(--negro);
+            border-radius: 50px;
+            padding: 14px 10px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--negro);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 10px;
+        }
+        .btn-calculadora:active, .btn-consulta:active { transform: scale(0.97); }
+        .btn-calculadora:hover, .btn-consulta:hover { background: var(--negro); color: var(--amarillo); }
+        .btn-calculadora i, .btn-consulta i { font-size: 18px; }
+
+        /* ===== SECCIONES COLAPSABLES ===== */
+        .calculadora-section, .consulta-section {
+            background: rgba(17,17,17,0.06);
+            border-radius: 16px;
+            padding: 0 16px;
+            margin-top: 8px;
+            border: 2px solid rgba(17,17,17,0.15);
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.5s ease, padding 0.5s ease;
+        }
+        .calculadora-section.active { max-height: 900px; padding: 18px 16px; }
+        .consulta-section.active { max-height: 1000px; padding: 18px 16px; }
+        .calculadora-section .form-group:last-child, .consulta-section .form-group:last-child { margin-bottom: 0; }
+
+        .btn-calcular {
+            width: 100%;
+            background: var(--amarillo-claro);
+            border: 2px solid var(--negro);
+            border-radius: 50px;
+            padding: 14px 10px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--negro);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 6px;
+        }
+        .btn-calcular:active { transform: scale(0.97); }
+        .btn-calcular:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+
+        .btn-google-maps {
+            width: 100%;
+            background: transparent;
+            border: 2px solid rgba(17,17,17,0.35);
+            border-radius: 50px;
+            padding: 12px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--negro);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 8px;
+        }
+        .btn-google-maps i { font-size: 16px; color: #ea4335; }
+        .btn-google-maps:active { transform: scale(0.97); }
+        .btn-google-maps:hover { border-color: var(--negro); }
+
+        .resultado-calculadora {
+            background: var(--negro);
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 14px;
+            display: none;
+        }
+        .resultado-calculadora.visible { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+
+        .resultado-calculadora .monto {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 30px;
+            font-weight: 900;
+            color: var(--amarillo);
+            text-align: center;
+            padding: 4px 0;
+        }
+        .resultado-calculadora .detalle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.65);
+            text-align: center;
+            margin-top: 4px;
+        }
+        .resultado-calculadora .tarifa-minima {
+            display: none;
+            font-size: 12px;
+            color: var(--amarillo);
+            text-align: center;
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: rgba(255,214,10,0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(255,214,10,0.3);
+        }
+        .resultado-calculadora .tarifa-minima.visible { display: block; }
+        .resultado-calculadora .tarifa-minima i { margin-right: 5px; }
+
+        .btn-enviar-calculadora, .btn-consulta-enviar {
+            width: 100%;
+            background: var(--negro);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 10px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--amarillo);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            box-shadow: 0 6px 20px var(--sombra);
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            margin-top: 12px;
+        }
+        .btn-enviar-calculadora i, .btn-consulta-enviar i { font-size: 20px; }
+        .btn-enviar-calculadora:active, .btn-consulta-enviar:active { transform: scale(0.97); }
+        .btn-enviar-calculadora:hover, .btn-consulta-enviar:hover { background: #000; }
+        .btn-enviar-calculadora:disabled, .btn-consulta-enviar:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+        .btn-enviar-calculadora .spinner-btn, .btn-consulta-enviar .spinner-btn {
+            display: none; width: 20px; height: 20px;
+            border: 3px solid rgba(255,214,10,0.3); border-top-color: var(--amarillo);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        .btn-enviar-calculadora.cargando .spinner-btn, .btn-consulta-enviar.cargando .spinner-btn { display: inline-block; }
+        .btn-enviar-calculadora.cargando i, .btn-consulta-enviar.cargando i { display: none; }
+        .btn-enviar-calculadora.cargando .texto-btn, .btn-consulta-enviar.cargando .texto-btn { display: none; }
+
+        .leyenda-calculadora, .leyenda-consulta {
+            text-align: center;
+            font-size: 11px;
+            color: var(--texto-suave);
+            margin-top: 5px;
+        }
+        .leyenda-calculadora i, .leyenda-consulta i { margin-right: 4px; }
+
+        /* ===== CONTACTO FOOTER ===== */
+        .contacto-strip {
+            margin-top: 28px;
+            padding: 16px;
+            background: var(--negro);
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+        .contacto-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.75);
+        }
+        .contacto-item i { color: var(--amarillo); font-size: 20px; flex-shrink: 0; }
+        .contacto-item strong { display: block; color: var(--blanco); font-size: 14px; }
+        .contacto-item span { font-size: 11px; color: rgba(255,255,255,0.55); }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--texto-suave);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .app-card { padding: 0 14px 32px; }
+            .logo-icono { width: 64px; padding-right: 10px; }
+            .logo-titulo .nombre-word { font-size: 24px; }
+            .logo-titulo .remis-word { font-size: 14px; }
+            .precio-monto { font-size: 22px; }
+            .btn-principal { font-size: 15px; padding: 15px 10px; }
+        }
+        @media (max-width: 380px) {
+            .logo-icono { width: 52px; }
+            .logo-titulo .nombre-word { font-size: 21px; }
+            .precio-monto { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Ícono del auto (isotipo). Para usar el archivo real del logo, reemplazar el <svg class="logo-icono"> por:
+         <img src="logo.png" alt="Remis Cervantino" class="logo-icono"> -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <symbol id="icono-auto" viewBox="0 0 200 130">
+            <path class="car-body" d="M48 24Q100 14 152 24L170 52H30Z"/>
+            <path class="car-cut" d="M58 29Q100 22 142 29L154 50H46Z"/>
+            <path class="car-body" d="M20 62Q22 52 36 50L48 52H152L164 50Q178 52 180 62V100Q180 108 172 108H28Q20 108 20 100Z"/>
+            <rect class="car-body" x="14" y="52" width="16" height="11" rx="3"/>
+            <rect class="car-body" x="170" y="52" width="16" height="11" rx="3"/>
+            <path class="car-cut" d="M30 68Q44 64 62 70L60 82Q44 86 32 80Z"/>
+            <path class="car-cut" d="M170 68Q156 64 138 70L140 82Q156 86 168 80Z"/>
+            <rect class="car-cut" x="76" y="72" width="48" height="14" rx="4"/>
+            <rect class="car-cut" x="36" y="92" width="20" height="6" rx="2"/>
+            <rect class="car-cut" x="144" y="92" width="20" height="6" rx="2"/>
+            <rect class="car-body" x="28" y="104" width="26" height="20" rx="6"/>
+            <rect class="car-body" x="146" y="104" width="26" height="20" rx="6"/>
+        </symbol>
+    </svg>
+
+    <div class="bloqueo-overlay" id="bloqueoOverlay">
+        <div class="bloqueo-card">
+            <i class="fas fa-car"></i>
+            <h2>No disponible</h2>
+            <p>Remis <strong>Cervantino</strong> no está operativo en este momento.</p>
+            <p style="font-size:13px;opacity:0.65;margin-top:4px;">Intentá más tarde.</p>
+            <div class="horario-bloqueo">
+                <i class="fas fa-clock"></i> Lunes a Sábados · 05:00 – 23:00
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Viaje guardado correctamente</span>
+    </div>
+
+    <div class="app-card" id="appContent">
+        <div class="top-spacer"></div>
+
+        <div class="header-remis">
+            <div class="logo-container">
+                <svg class="logo-icono" role="img" aria-label="Remis Cervantino"><use href="#icono-auto"/></svg>
+                <div class="logo-texto">
+                    <div class="logo-titulo">
+                        <span class="remis-word">Remis</span>
+                        <span class="nombre-word">Cervantino</span>
+                    </div>
+                    <div class="logo-slogan">El servicio más rápido y seguro</div>
+                </div>
+            </div>
+            <div class="horario-badge">
+                <i class="fas fa-clock"></i> 05 – 23 hs
+            </div>
+        </div>
+
+        <div class="subhead">
+            <i class="fas fa-map-pin"></i> Viajes dentro de la ciudad
+        </div>
+
+        <div class="form-group">
+            <label for="nombre"><i class="fas fa-user"></i> Nombre del pasajero <span class="requerido">*</span></label>
+            <div class="input-wrapper">
+                <i class="fas fa-user-pen"></i>
+                <input type="text" id="nombre" placeholder="Ej: Juan Pérez" value="">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="origen"><i class="fas fa-location-dot"></i> Lugar de origen <span class="requerido">*</span></label>
+            <div class="input-wrapper" id="origenWrapper">
+                <i class="fas fa-flag"></i>
+                <input type="text" id="origen" placeholder="Calle y número (ej: Av. Colón 123)" value="">
+            </div>
+            <div class="input-error" id="origenError"><i class="fas fa-exclamation-circle"></i> Ingresá calle y número</div>
+            <div class="ubication-hint js-localidad"><i class="fas fa-map-marker-alt"></i> <span class="js-localidad-texto"></span></div>
+        </div>
+
+        <div class="form-group">
+            <label for="destino"><i class="fas fa-location-dot"></i> Lugar de llegada <span class="requerido">*</span></label>
+            <div class="input-wrapper" id="destinoWrapper">
+                <i class="fas fa-flag-checkered"></i>
+                <input type="text" id="destino" placeholder="Calle y número (ej: San Martín 456)" value="">
+            </div>
+            <div class="input-error" id="destinoError"><i class="fas fa-exclamation-circle"></i> Ingresá calle y número</div>
+            <div class="ubication-hint js-localidad"><i class="fas fa-map-marker-alt"></i> <span class="js-localidad-texto"></span></div>
+        </div>
+
+        <div class="precio-box">
+            <span class="precio-label"><i class="fas fa-tag"></i> Precio base</span>
+            <span class="precio-monto" id="precioDisplay">
+                <span id="precioValor">$3.000</span>
+                <span>ARS</span>
+                <span class="loading-precio" id="loadingPrecio"><i class="fas fa-spinner"></i></span>
+            </span>
+            <div class="precio-detalle" id="precioDetalle">Tarifa fija por viaje</div>
+        </div>
+
+        <button class="btn-principal" id="whatsappBtn" disabled>
+            <i class="fab fa-whatsapp"></i>
+            <span class="texto-btn">Solicitar viaje</span>
+            <span class="spinner-btn"></span>
+        </button>
+        <div class="btn-leyenda"><i class="fas fa-arrow-right"></i> Abre WhatsApp</div>
+
+        <div class="divider"><span>o</span></div>
+
+        <button class="btn-calculadora" id="toggleCalculadoraBtn">
+            <i class="fas fa-calculator"></i> ¿Querés saber el monto del viaje?
+        </button>
+
+        <div class="calculadora-section" id="calculadoraSection">
+            <div class="form-group">
+                <label><i class="fas fa-arrows-left-right"></i> Distancia en kilómetros <span class="requerido">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-ruler"></i>
+                    <input type="number" id="distanciaKm" placeholder="Ej: 10" min="0" step="0.1">
+                </div>
+            </div>
+
+            <button class="btn-calcular" id="calcularBtn" disabled>
+                <i class="fas fa-calculator"></i> Calcular
+            </button>
+
+            <button class="btn-google-maps" id="verGoogleMapsBtn">
+                <i class="fas fa-map-marked-alt"></i> Ver km en Google Maps
+            </button>
+
+            <div class="resultado-calculadora" id="resultadoCalculadora">
+                <div class="monto" id="montoCalculado">$0</div>
+                <div class="detalle" id="detalleCalculado">Ingresá la distancia para calcular</div>
+                <div class="tarifa-minima" id="tarifaMinima">
+                    <i class="fas fa-info-circle"></i> Tarifa mínima: <span id="tarifaMinimaValor">$3.000</span> ARS
+                </div>
+            </div>
+
+            <button class="btn-enviar-calculadora" id="enviarCalculadoraBtn" disabled>
+                <i class="fab fa-whatsapp"></i>
+                <span class="texto-btn">Solicitar viaje</span>
+                <span class="spinner-btn"></span>
+            </button>
+            <div class="leyenda-calculadora"><i class="fas fa-arrow-right"></i> Abre WhatsApp</div>
+        </div>
+
+        <div class="divider"><span>o</span></div>
+
+        <button class="btn-consulta" id="toggleConsultaBtn">
+            <i class="fas fa-globe-americas"></i> Consultar viajes fuera de la ciudad
+        </button>
+
+        <div class="consulta-section" id="consultaSection">
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Origen <span class="requerido">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-flag"></i>
+                    <input type="text" id="consultaOrigen" placeholder="Calle y número (ej: Av. Colón 123)" value="">
+                </div>
+                <div class="ubication-hint js-localidad"><i class="fas fa-map-marker-alt"></i> <span class="js-localidad-texto"></span></div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-map-marker-alt"></i> Destino fuera de la ciudad <span class="requerido">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-road"></i>
+                    <input type="text" id="consultaCalle" placeholder="Calle" value="">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-hashtag"></i>
+                    <input type="text" id="consultaNumero" placeholder="Número" value="">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="input-wrapper">
+                    <i class="fas fa-city"></i>
+                    <input type="text" id="consultaLocalidad" placeholder="Localidad" value="">
+                </div>
+                <div class="ubication-hint"><i class="fas fa-info-circle"></i> Localidad de destino</div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-users"></i> Cantidad de pasajeros <span class="requerido">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <select id="consultaPasajeros">
+                        <option value="1">1 pasajero</option>
+                        <option value="2" selected>2 pasajeros</option>
+                        <option value="3">3 pasajeros</option>
+                        <option value="4">4 pasajeros</option>
+                        <option value="5">5 pasajeros</option>
+                        <option value="6">6 pasajeros</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-calendar-alt"></i> Fecha y hora <span class="requerido">*</span></label>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-day"></i>
+                    <input type="datetime-local" id="consultaFecha">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-comment"></i> Observaciones</label>
+                <div class="input-wrapper" style="align-items: flex-start; padding: 8px 14px;">
+                    <i class="fas fa-pen" style="margin-top: 12px;"></i>
+                    <textarea id="consultaObservaciones" placeholder="Ej: Silla para bebé, equipaje extra, etc."></textarea>
+                </div>
+            </div>
+
+            <button class="btn-consulta-enviar" id="enviarConsultaBtn">
+                <i class="fab fa-whatsapp"></i>
+                <span class="texto-btn">Consultar viaje</span>
+                <span class="spinner-btn"></span>
+            </button>
+            <div class="leyenda-consulta"><i class="fas fa-arrow-right"></i> Abre WhatsApp</div>
+        </div>
+
+        <div class="contacto-strip">
+            <div class="contacto-item">
+                <i class="fab fa-whatsapp"></i>
+                <div>
+                    <strong>+54 9 291 4407418</strong>
+                    <span>WhatsApp</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <i class="fas fa-clock"></i> Lunes a Sábados · 05:00 – 23:00 &nbsp;·&nbsp; <i class="fas fa-globe"></i> Datos en tiempo real
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ================== CONFIGURACIÓN DE LA REMISERÍA ==================
+            // Pegar acá la URL de la implementación del Apps Script de Remis Cervantino
+            const GOOGLE_SCRIPT_URL = 'PEGAR_URL_DEL_APPS_SCRIPT_AQUI';
+            // WhatsApp de PRUEBA (reemplazar por el definitivo en la versión final)
+            const TELEFONO = '5492914407418';
+            const NOMBRE_REMIS = 'Cervantino';
+            // Planilla de Remis Cervantino (hoja "Configuración" = precios y disponibilidad)
+            const SHEET_ID = '16PNf85xIEoKllWDDU7SsvOuXao2rnm-duAiDfBWZzoQ';
+            const HOJA_CONFIG = 'Configuración';
+            // Localidad (se agrega a las direcciones para Google Maps). Dejar vacío hasta definirla.
+            const LOCALIDAD = '';
+            // ===================================================================
+
+            const nombreInput = document.getElementById('nombre');
+            const origenInput = document.getElementById('origen');
+            const destinoInput = document.getElementById('destino');
+            const origenWrapper = document.getElementById('origenWrapper');
+            const destinoWrapper = document.getElementById('destinoWrapper');
+            const origenError = document.getElementById('origenError');
+            const destinoError = document.getElementById('destinoError');
+            const precioValor = document.getElementById('precioValor');
+            const precioDetalle = document.getElementById('precioDetalle');
+            const tarifaMinimaValor = document.getElementById('tarifaMinimaValor');
+            const loadingPrecio = document.getElementById('loadingPrecio');
+            const whatsappBtn = document.getElementById('whatsappBtn');
+            const appContent = document.getElementById('appContent');
+            const bloqueoOverlay = document.getElementById('bloqueoOverlay');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            const toggleCalculadoraBtn = document.getElementById('toggleCalculadoraBtn');
+            const calculadoraSection = document.getElementById('calculadoraSection');
+            const distanciaKmInput = document.getElementById('distanciaKm');
+            const calcularBtn = document.getElementById('calcularBtn');
+            const resultadoCalculadora = document.getElementById('resultadoCalculadora');
+            const montoCalculado = document.getElementById('montoCalculado');
+            const detalleCalculado = document.getElementById('detalleCalculado');
+            const tarifaMinima = document.getElementById('tarifaMinima');
+            const enviarCalculadoraBtn = document.getElementById('enviarCalculadoraBtn');
+            const verGoogleMapsBtn = document.getElementById('verGoogleMapsBtn');
+
+            const toggleConsultaBtn = document.getElementById('toggleConsultaBtn');
+            const consultaSection = document.getElementById('consultaSection');
+            const consultaOrigen = document.getElementById('consultaOrigen');
+            const consultaCalle = document.getElementById('consultaCalle');
+            const consultaNumero = document.getElementById('consultaNumero');
+            const consultaLocalidad = document.getElementById('consultaLocalidad');
+            const consultaPasajeros = document.getElementById('consultaPasajeros');
+            const consultaFecha = document.getElementById('consultaFecha');
+            const consultaObservaciones = document.getElementById('consultaObservaciones');
+            const enviarConsultaBtn = document.getElementById('enviarConsultaBtn');
+
+            let PRECIO_POR_KM = 1000;
+            let TARIFA_MINIMA = 3000;
+            let DISPONIBLE = true;
+            let calculadoraVisible = false;
+            let consultaVisible = false;
+            let ultimoMontoCalculado = 0;
+            let ultimaDistanciaCalculada = 0;
+            let aplicaTarifaMinima = false;
+
+            // Hint de localidad: solo se muestra si LOCALIDAD está definida
+            document.querySelectorAll('.js-localidad').forEach(function(el) {
+                if (!LOCALIDAD) { el.style.display = 'none'; return; }
+                const t = el.querySelector('.js-localidad-texto');
+                if (t) t.textContent = LOCALIDAD.replace(', Argentina', '');
+            });
+
+            async function guardarEnGoogleSheets(datos) {
+                try {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(datos)
+                    });
+                    return { success: true };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+
+            function mostrarToast(mensaje, tipo = 'success') {
+                toast.className = 'toast ' + tipo;
+                toastMessage.textContent = mensaje;
+                void toast.offsetWidth;
+                toast.classList.add('visible');
+                clearTimeout(toast._timeout);
+                toast._timeout = setTimeout(() => toast.classList.remove('visible'), 4000);
+            }
+
+            async function obtenerIP() {
+                try {
+                    const r = await fetch('https://api.ipify.org?format=json');
+                    const d = await r.json();
+                    return d.ip;
+                } catch { return 'No disponible'; }
+            }
+
+            async function procesarViaje(tipo, origen, destino, nombre, monto, distancia = null, extras = {}) {
+                if (!DISPONIBLE) { mostrarToast('El servicio no está disponible ahora.', 'error'); return false; }
+                if (!nombre || !origen || !destino) { mostrarToast('Completá todos los datos.', 'error'); return false; }
+                const ip = await obtenerIP();
+                const datos = {
+                    nombre, origen, destino,
+                    monto: monto || TARIFA_MINIMA,
+                    distancia: distancia || 'N/A',
+                    tipo, telefono: TELEFONO, ip,
+                    observaciones: extras.observaciones || '',
+                    pasajeros: extras.pasajeros || '1',
+                    fecha_hora: extras.fecha_hora || ahoraARiso()
+                };
+                try {
+                    const btnActivo = document.activeElement;
+                    if (btnActivo?.classList) { btnActivo.classList.add('cargando'); btnActivo.disabled = true; }
+                    const resultado = await guardarEnGoogleSheets(datos);
+                    if (btnActivo?.classList) { btnActivo.classList.remove('cargando'); btnActivo.disabled = false; }
+                    if (resultado.success) { mostrarToast('✅ Viaje guardado correctamente', 'success'); return true; }
+                    else { mostrarToast('❌ Error al guardar', 'error'); return false; }
+                } catch (error) {
+                    mostrarToast('❌ Error al guardar el viaje', 'error'); return false;
+                }
+            }
+
+            async function cargarDatosDesdeGoogleSheets() {
+                try {
+                    loadingPrecio.style.display = 'inline-block';
+                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(HOJA_CONFIG)}`;
+                    const response = await fetch(url);
+                    const texto = await response.text();
+                    const jsonStr = texto.substring(47).slice(0, -2);
+                    const json = JSON.parse(jsonStr);
+                    const rows = json.table.rows;
+                    let precioKm = 1000, tarifaMin = 3000, disponible = true;
+                    for (const row of rows) {
+                        const concepto = row.c[0]?.v || '';
+                        const valor = row.c[1]?.v || '';
+                        if (concepto === 'precio_km' || concepto === 'precio por km') precioKm = parseFloat(valor) || 1000;
+                        else if (concepto === 'tarifa_minima' || concepto === 'tarifa mínima') tarifaMin = parseFloat(valor) || 3000;
+                        else if (concepto === 'disponible' || concepto === 'Disponible') {
+                            const v = valor.toString().trim().toUpperCase();
+                            disponible = (v === 'SI' || v === 'SÍ' || v === 'YES' || v === 'TRUE');
+                        }
+                    }
+                    PRECIO_POR_KM = precioKm; TARIFA_MINIMA = tarifaMin; DISPONIBLE = disponible;
+                    precioValor.textContent = `$${TARIFA_MINIMA.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+                    tarifaMinimaValor.textContent = `$${TARIFA_MINIMA.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+                    if (!DISPONIBLE) { bloqueoOverlay.classList.add('active'); appContent.style.opacity='0.2'; appContent.style.pointerEvents='none'; }
+                    else { bloqueoOverlay.classList.remove('active'); appContent.style.opacity='1'; appContent.style.pointerEvents='auto'; }
+                } catch (error) {
+                    PRECIO_POR_KM = 1000; TARIFA_MINIMA = 3000; DISPONIBLE = true;
+                    precioValor.textContent = '$3.000'; tarifaMinimaValor.textContent = '$3.000';
+                    precioDetalle.textContent = 'Valores por defecto';
+                    bloqueoOverlay.classList.remove('active'); appContent.style.opacity='1'; appContent.style.pointerEvents='auto';
+                } finally {
+                    loadingPrecio.style.display = 'none';
+                }
+            }
+
+            toggleCalculadoraBtn.addEventListener('click', function() {
+                calculadoraVisible = !calculadoraVisible;
+                if (calculadoraVisible) {
+                    calculadoraSection.classList.add('active');
+                    this.innerHTML = '<i class="fas fa-chevron-up"></i> Cerrar calculadora';
+                } else {
+                    calculadoraSection.classList.remove('active');
+                    this.innerHTML = '<i class="fas fa-calculator"></i> ¿Querés saber el monto del viaje?';
+                    resultadoCalculadora.classList.remove('visible');
+                    tarifaMinima.classList.remove('visible');
+                }
+            });
+
+            toggleConsultaBtn.addEventListener('click', function() {
+                consultaVisible = !consultaVisible;
+                if (consultaVisible) {
+                    consultaSection.classList.add('active');
+                    this.innerHTML = '<i class="fas fa-chevron-up"></i> Cerrar consulta fuera de la ciudad';
+                } else {
+                    consultaSection.classList.remove('active');
+                    this.innerHTML = '<i class="fas fa-globe-americas"></i> Consultar viajes fuera de la ciudad';
+                }
+            });
+
+            function validarDireccion(direccion) {
+                const t = direccion.trim();
+                if (!t) return false;
+                return /\d/.test(t) && /[a-zA-Z]/.test(t);
+            }
+
+            function mostrarError(elemento, wrapper, errorElement) {
+                if (!elemento || !wrapper || !errorElement) return;
+                const esValido = validarDireccion(elemento.value);
+                if (!esValido && elemento.value.trim() !== '') {
+                    wrapper.classList.add('error'); errorElement.style.display = 'block';
+                } else {
+                    wrapper.classList.remove('error'); errorElement.style.display = 'none';
+                }
+                return esValido;
+            }
+
+            function ahoraARiso() {
+                const fmt = new Intl.DateTimeFormat('es-AR', {
+                    timeZone: 'America/Argentina/Buenos_Aires',
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: false
+                });
+                const p = {};
+                fmt.formatToParts(new Date()).forEach(({ type, value }) => { p[type] = value; });
+                return `${p.year}-${p.month}-${p.day} ${p.hour}:${p.minute}:${p.second}`;
+            }
+
+            function agregarLocalidad(direccion) {
+                const d = direccion.trim();
+                if (!d || !LOCALIDAD) return d;
+                const nombreLocalidad = LOCALIDAD.split(',')[0].trim();
+                if (nombreLocalidad && d.toLowerCase().includes(nombreLocalidad.toLowerCase())) return d;
+                return d + ', ' + LOCALIDAD;
+            }
+
+            function generarEnlaceGoogleMaps(origen, destino) {
+                return `https://www.google.com/maps/dir/${encodeURIComponent(origen)}/${encodeURIComponent(destino)}`;
+            }
+
+            verGoogleMapsBtn.addEventListener('click', function() {
+                const origen = origenInput.value.trim();
+                const destino = destinoInput.value.trim();
+                if (!origen || !destino) { mostrarToast('Completá origen y destino primero.', 'error'); return; }
+                if (!validarDireccion(origen) || !validarDireccion(destino)) { mostrarToast('Las direcciones deben incluir calle y número.', 'error'); return; }
+                window.open(generarEnlaceGoogleMaps(agregarLocalidad(origen), agregarLocalidad(destino)), '_blank');
+            });
+
+            function validarCampos() {
+                const nombre = nombreInput.value.trim();
+                const origen = origenInput.value.trim();
+                const destino = destinoInput.value.trim();
+                const origenValido = validarDireccion(origen);
+                const destinoValido = validarDireccion(destino);
+                mostrarError(origenInput, origenWrapper, origenError);
+                mostrarError(destinoInput, destinoWrapper, destinoError);
+                whatsappBtn.disabled = !(nombre && origenValido && destinoValido && DISPONIBLE);
+            }
+
+            distanciaKmInput.addEventListener('input', function() {
+                const valor = parseFloat(this.value);
+                if (valor > 0 && DISPONIBLE) { calcularBtn.disabled = false; }
+                else { calcularBtn.disabled = true; resultadoCalculadora.classList.remove('visible'); tarifaMinima.classList.remove('visible'); enviarCalculadoraBtn.disabled = true; }
+            });
+
+            calcularBtn.addEventListener('click', function() {
+                if (!DISPONIBLE) return;
+                const distancia = parseFloat(distanciaKmInput.value);
+                if (!distancia || distancia <= 0) { mostrarToast('Ingresá una distancia válida.', 'error'); return; }
+                ultimaDistanciaCalculada = distancia;
+                const montoCalc = distancia * PRECIO_POR_KM;
+                aplicaTarifaMinima = montoCalc < TARIFA_MINIMA;
+                ultimoMontoCalculado = aplicaTarifaMinima ? TARIFA_MINIMA : montoCalc;
+                montoCalculado.textContent = `$${ultimoMontoCalculado.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} ARS`;
+                if (aplicaTarifaMinima) {
+                    detalleCalculado.textContent = `${distancia.toFixed(1)} km (tarifa mínima aplicada)`;
+                    tarifaMinima.classList.add('visible');
+                } else {
+                    detalleCalculado.textContent = `${distancia.toFixed(1)} km`;
+                    tarifaMinima.classList.remove('visible');
+                }
+                resultadoCalculadora.classList.add('visible');
+                enviarCalculadoraBtn.disabled = false;
+            });
+
+            enviarCalculadoraBtn.addEventListener('click', async function() {
+                if (!DISPONIBLE) { mostrarToast('El servicio no está disponible ahora.', 'error'); return; }
+                const nombre = nombreInput.value.trim() || 'No especificado';
+                const origenRaw = origenInput.value.trim() || 'No especificado';
+                const destinoRaw = destinoInput.value.trim() || 'No especificado';
+                const origen = origenRaw !== 'No especificado' ? agregarLocalidad(origenRaw) : origenRaw;
+                const destino = destinoRaw !== 'No especificado' ? agregarLocalidad(destinoRaw) : destinoRaw;
+                const distancia = ultimaDistanciaCalculada;
+                const monto = ultimoMontoCalculado;
+                await procesarViaje('Cotización', origenRaw, destinoRaw, nombre, monto, distancia);
+                const enlaceMaps = generarEnlaceGoogleMaps(origen, destino);
+                const precioFormateado = `$${monto.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} ARS`;
+                const mensaje = `🧾 *Cotización - Remis ${NOMBRE_REMIS}*%0A%0A` +
+                    `👤 *Nombre:* ${encodeURIComponent(nombre)}%0A` +
+                    `📍 *Origen:* ${encodeURIComponent(origenRaw)}%0A` +
+                    `🏁 *Destino:* ${encodeURIComponent(destinoRaw)}%0A` +
+                    `📏 *Distancia:* ${distancia.toFixed(1)} km%0A` +
+                    `💰 *Monto:* ${encodeURIComponent(precioFormateado)}%0A%0A` +
+                    `🗺️ *Ver ruta en Google Maps:*%0A${encodeURIComponent(enlaceMaps)}`;
+                window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank');
+            });
+
+            whatsappBtn.addEventListener('click', async function() {
+                if (!DISPONIBLE) { mostrarToast('El servicio no está disponible ahora.', 'error'); return; }
+                const nombre = nombreInput.value.trim();
+                const origenRaw = origenInput.value.trim();
+                const destinoRaw = destinoInput.value.trim();
+                const origen = agregarLocalidad(origenRaw);
+                const destino = agregarLocalidad(destinoRaw);
+                if (!nombre || !origenRaw || !destinoRaw) { mostrarToast('Completá todos los datos.', 'error'); return; }
+                await procesarViaje('Viaje local', origenRaw, destinoRaw, nombre, TARIFA_MINIMA);
+                const enlaceMaps = generarEnlaceGoogleMaps(origen, destino);
+                const precioFormateado = `$${TARIFA_MINIMA.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} ARS`;
+                const mensaje = `🧾 *Nuevo viaje - Remis ${NOMBRE_REMIS}*%0A%0A` +
+                    `👤 *Nombre:* ${encodeURIComponent(nombre)}%0A` +
+                    `📍 *Origen:* ${encodeURIComponent(origenRaw)}%0A` +
+                    `🏁 *Destino:* ${encodeURIComponent(destinoRaw)}%0A` +
+                    `💰 *Monto:* ${encodeURIComponent(precioFormateado)}%0A%0A` +
+                    `🗺️ *Ver ruta en Google Maps:*%0A${encodeURIComponent(enlaceMaps)}`;
+                window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank');
+            });
+
+            enviarConsultaBtn.addEventListener('click', async function() {
+                if (!DISPONIBLE) { mostrarToast('El servicio no está disponible ahora.', 'error'); return; }
+                const nombre = nombreInput.value.trim() || 'No especificado';
+                const origen = consultaOrigen.value.trim();
+                const calle = consultaCalle.value.trim();
+                const numero = consultaNumero.value.trim();
+                const localidad = consultaLocalidad.value.trim();
+                const pasajeros = consultaPasajeros.value;
+                const fecha = consultaFecha.value;
+                const observaciones = consultaObservaciones.value.trim();
+                if (!origen || !calle || !numero || !localidad || !fecha) { mostrarToast('Completá todos los campos obligatorios.', 'error'); return; }
+                if (!validarDireccion(origen)) { mostrarToast('El origen debe incluir calle y número.', 'error'); return; }
+                const origenConLocalidad = agregarLocalidad(origen);
+                const destinoCompleto = `${calle} ${numero}, ${localidad}`;
+                await procesarViaje('Consulta fuera', origen, destinoCompleto, nombre, 'Consultar', null, { observaciones, pasajeros, fecha_hora: fecha });
+                const fechaFormateada = fecha ? new Date(fecha).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : 'No especificada';
+                const enlaceMaps = generarEnlaceGoogleMaps(origenConLocalidad, destinoCompleto);
+                let mensaje = `🚖 *Consulta de viaje - Remis ${NOMBRE_REMIS}*%0A%0A` +
+                    `👤 *Nombre:* ${encodeURIComponent(nombre)}%0A` +
+                    `📍 *Origen:* ${encodeURIComponent(origen)}%0A` +
+                    `🏁 *Destino:* ${encodeURIComponent(destinoCompleto)}%0A` +
+                    `👥 *Pasajeros:* ${pasajeros}%0A` +
+                    `📅 *Fecha/Hora:* ${encodeURIComponent(fechaFormateada)}%0A` +
+                    `🗺️ *Ver ruta en Google Maps:*%0A${encodeURIComponent(enlaceMaps)}`;
+                if (observaciones) mensaje += `%0A📝 *Observaciones:* ${encodeURIComponent(observaciones)}`;
+                window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank');
+            });
+
+            nombreInput.addEventListener('input', validarCampos);
+            origenInput.addEventListener('input', validarCampos);
+            destinoInput.addEventListener('input', validarCampos);
+
+            window.addEventListener('DOMContentLoaded', async function() {
+                await cargarDatosDesdeGoogleSheets();
+                const fmtTomorrow = new Intl.DateTimeFormat('es-AR', {
+                    timeZone: 'America/Argentina/Buenos_Aires',
+                    year: 'numeric', month: '2-digit', day: '2-digit'
+                });
+                const partsT = {};
+                fmtTomorrow.formatToParts(new Date(Date.now() + 86400000)).forEach(({ type, value }) => { partsT[type] = value; });
+                consultaFecha.value = `${partsT.year}-${partsT.month}-${partsT.day}T10:00`;
+                validarCampos();
+            });
+
+        })();
+    </script>
+</body>
+</html>
