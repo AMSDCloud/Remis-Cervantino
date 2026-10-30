@@ -594,7 +594,7 @@
             <p>Remis <strong>Cervantino</strong> no está operativo en este momento.</p>
             <p style="font-size:13px;opacity:0.65;margin-top:4px;">Intentá más tarde.</p>
             <div class="horario-bloqueo">
-                <i class="fas fa-clock"></i> Lunes a Sábados · 05:00 – 23:00
+                <i class="fas fa-clock"></i> Lunes a Sábados · 06:00 – 22:00
             </div>
         </div>
     </div>
@@ -619,12 +619,12 @@
                 </div>
             </div>
             <div class="horario-badge">
-                <i class="fas fa-clock"></i> 05 – 23 hs
+                <i class="fas fa-clock"></i> 06 – 22 hs
             </div>
         </div>
 
         <div class="subhead">
-            <i class="fas fa-map-pin"></i> Viajes dentro de la ciudad
+            <i class="fas fa-map-pin"></i> Viajes dentro de Azul
         </div>
 
         <div class="form-group">
@@ -714,7 +714,7 @@
         <div class="divider"><span>o</span></div>
 
         <button class="btn-consulta" id="toggleConsultaBtn">
-            <i class="fas fa-globe-americas"></i> Consultar viajes fuera de la ciudad
+            <i class="fas fa-globe-americas"></i> Consultar viajes fuera de Azul
         </button>
 
         <div class="consulta-section" id="consultaSection">
@@ -728,7 +728,7 @@
             </div>
 
             <div class="form-group">
-                <label><i class="fas fa-map-marker-alt"></i> Destino fuera de la ciudad <span class="requerido">*</span></label>
+                <label><i class="fas fa-map-marker-alt"></i> Destino fuera de Azul <span class="requerido">*</span></label>
                 <div class="input-wrapper">
                     <i class="fas fa-road"></i>
                     <input type="text" id="consultaCalle" placeholder="Calle" value="">
@@ -800,7 +800,7 @@
         </div>
 
         <div class="footer-note">
-            <i class="fas fa-clock"></i> Lunes a Sábados · 05:00 – 23:00 &nbsp;·&nbsp; <i class="fas fa-globe"></i> Datos en tiempo real
+            <i class="fas fa-clock"></i> Lunes a Sábados · 06:00 – 22:00 &nbsp;·&nbsp; <i class="fas fa-globe"></i> Datos en tiempo real
         </div>
     </div>
 
@@ -809,16 +809,16 @@
             "use strict";
 
             // ================== CONFIGURACIÓN DE LA REMISERÍA ==================
-            // Pegar acá la URL de la implementación del Apps Script de Remis Cervantino
-            const GOOGLE_SCRIPT_URL = 'PEGAR_URL_DEL_APPS_SCRIPT_AQUI';
+            // URL de la implementación del Apps Script de Remis Cervantino
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyo06uaEil7tLcmVwfQz6P-N4AU-R-4qNDBeeKo4yt6jBG1iFD9nnEyikt7-Z2nwfwG/exec';
             // WhatsApp de PRUEBA (reemplazar por el definitivo en la versión final)
             const TELEFONO = '5492914407418';
             const NOMBRE_REMIS = 'Cervantino';
             // Planilla de Remis Cervantino (hoja "Configuración" = precios y disponibilidad)
             const SHEET_ID = '16PNf85xIEoKllWDDU7SsvOuXao2rnm-duAiDfBWZzoQ';
             const HOJA_CONFIG = 'Configuración';
-            // Localidad (se agrega a las direcciones para Google Maps). Dejar vacío hasta definirla.
-            const LOCALIDAD = '';
+            // Localidad (se agrega a las direcciones para Google Maps)
+            const LOCALIDAD = 'Azul, Buenos Aires, Argentina';
             // ===================================================================
 
             const nombreInput = document.getElementById('nombre');
@@ -984,10 +984,10 @@
                 consultaVisible = !consultaVisible;
                 if (consultaVisible) {
                     consultaSection.classList.add('active');
-                    this.innerHTML = '<i class="fas fa-chevron-up"></i> Cerrar consulta fuera de la ciudad';
+                    this.innerHTML = '<i class="fas fa-chevron-up"></i> Cerrar consulta fuera de Azul';
                 } else {
                     consultaSection.classList.remove('active');
-                    this.innerHTML = '<i class="fas fa-globe-americas"></i> Consultar viajes fuera de la ciudad';
+                    this.innerHTML = '<i class="fas fa-globe-americas"></i> Consultar viajes fuera de Azul';
                 }
             });
 
