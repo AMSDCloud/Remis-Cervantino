@@ -1109,12 +1109,10 @@
                 if (!nombre || !origenRaw || !destinoRaw) { mostrarToast('Completá todos los datos.', 'error'); return; }
                 await procesarViaje('Viaje local', origenRaw, destinoRaw, nombre, TARIFA_MINIMA);
                 const enlaceMaps = generarEnlaceGoogleMaps(origen, destino);
-                const precioFormateado = `$${TARIFA_MINIMA.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")} ARS`;
                 const mensaje = `🧾 *Nuevo viaje - Remis ${NOMBRE_REMIS}*%0A%0A` +
                     `👤 *Nombre:* ${encodeURIComponent(nombre)}%0A` +
                     `📍 *Origen:* ${encodeURIComponent(origenRaw)}%0A` +
-                    `🏁 *Destino:* ${encodeURIComponent(destinoRaw)}%0A` +
-                    `💰 *Monto:* ${encodeURIComponent(precioFormateado)}%0A%0A` +
+                    `🏁 *Destino:* ${encodeURIComponent(destinoRaw)}%0A%0A` +
                     `🗺️ *Ver ruta en Google Maps:*%0A${encodeURIComponent(enlaceMaps)}`;
                 window.open(`https://wa.me/${TELEFONO}?text=${mensaje}`, '_blank');
             });
